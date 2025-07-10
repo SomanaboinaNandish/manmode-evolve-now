@@ -7,11 +7,9 @@ import { HabitTracker } from "@/components/HabitTracker";
 import { KnowledgeZone } from "@/components/KnowledgeZone";
 import { FitnessZone } from "@/components/FitnessZone";
 import { ProductivityZone } from "@/components/ProductivityZone";
-import { UserProfile } from "@/components/UserProfile";
 import { XPDisplay } from "@/components/XPDisplay";
 import { GoalsManager } from "@/components/GoalsManager";
 import { AccountSettings } from "@/components/AccountSettings";
-import { WorkoutSchedule } from "@/components/WorkoutSchedule";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,13 +41,9 @@ const Index = () => {
       case "productivity":
         return <ProductivityZone />;
       case "profile":
-        return <UserProfile />;
+        return <AccountSettings />;
       case "goals":
         return <GoalsManager />;
-      case "settings":
-        return <AccountSettings />;
-      case "schedule":
-        return <WorkoutSchedule />;
       default:
         return (
           <div className="space-y-8">

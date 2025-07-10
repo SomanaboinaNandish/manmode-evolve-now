@@ -26,6 +26,9 @@ export const ProductivityZone = () => {
 
   const [deepWorkSessions, setDeepWorkSessions] = useState(0);
   const [quickFocusSessions, setQuickFocusSessions] = useState(0);
+  const [currentSession, setCurrentSession] = useState<'deep' | 'quick' | null>(null);
+  const [sessionTime, setSessionTime] = useState(0);
+  const [isSessionActive, setIsSessionActive] = useState(false);
 
   const addTask = () => {
     if (newTask.trim()) {
@@ -62,15 +65,55 @@ export const ProductivityZone = () => {
   };
 
   const startDeepWork = () => {
+    setCurrentSession('deep');
+    setSessionTime(90 * 60); // 90 minutes in seconds
+    setIsSessionActive(true);
     setDeepWorkSessions(prev => prev + 1);
-    // Start a 90-minute session
-    alert("Starting 90-minute Deep Work session! Stay focused!");
+    
+    // Start countdown
+    const interval = setInterval(() => {
+      setSessionTime(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setIsSessionActive(false);
+          setCurrentSession(null);
+          alert("Deep Work session completed! Great job! 💪");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   };
 
   const startQuickFocus = () => {
+    setCurrentSession('quick');
+    setSessionTime(15 * 60); // 15 minutes in seconds
+    setIsSessionActive(true);
     setQuickFocusSessions(prev => prev + 1);
-    // Start a 15-minute session
-    alert("Starting 15-minute Quick Focus session! Let's go!");
+    
+    // Start countdown
+    const interval = setInterval(() => {
+      setSessionTime(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setIsSessionActive(false);
+          setCurrentSession(null);
+          alert("Quick Focus session completed! Well done! ⚡");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    if (hours > 0) {
+      return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const stats = [
@@ -86,6 +129,23 @@ export const ProductivityZone = () => {
         <h1 className="text-3xl font-bold text-gray-900">Productivity Zone</h1>
         <p className="text-gray-600">Focus, achieve, and get things done</p>
       </div>
+
+      {/* Current Session Display */}
+      {isSessionActive && currentSession && (
+        <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-red-50">
+          <CardContent className="p-6 text-center">
+            <h3 className="text-xl font-bold text-orange-700 mb-2">
+              {currentSession === 'deep' ? 'Deep Work Session' : 'Quick Focus Session'} Active
+            </h3>
+            <div className="text-4xl font-mono font-bold text-gray-900 mb-4">
+              {formatTime(sessionTime)}
+            </div>
+            <Badge className="bg-orange-100 text-orange-700">
+              Stay Focused! 🎯
+            </Badge>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -177,21 +237,33 @@ export const ProductivityZone = () => {
 
       {/* Quick Focus Options */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={startDeepWork}>
+        <Card className="hover:shadow-md transition-shadow">
           <CardContent className="p-6 text-center">
             <Target className="h-8 w-8 text-blue-500 mx-auto mb-3" />
             <h3 className="font-semibold mb-2">Deep Work Session</h3>
             <p className="text-sm text-gray-600 mb-4">90 minutes of focused work</p>
-            <Button className="w-full">Start Deep Work</Button>
+            <Button 
+              className="w-full" 
+              onClick={startDeepWork}
+              disabled={isSessionActive}
+            >
+              {isSessionActive && currentSession === 'deep' ? 'Session Active' : 'Start Deep Work'}
+            </Button>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={startQuickFocus}>
+        <Card className="hover:shadow-md transition-shadow">
           <CardContent className="p-6 text-center">
             <Zap className="h-8 w-8 text-purple-500 mx-auto mb-3" />
             <h3 className="font-semibold mb-2">Quick Focus</h3>
             <p className="text-sm text-gray-600 mb-4">15 minutes power session</p>
-            <Button className="w-full">Start Quick Focus</Button>
+            <Button 
+              className="w-full" 
+              onClick={startQuickFocus}
+              disabled={isSessionActive}
+            >
+              {isSessionActive && currentSession === 'quick' ? 'Session Active' : 'Start Quick Focus'}
+            </Button>
           </CardContent>
         </Card>
       </div>

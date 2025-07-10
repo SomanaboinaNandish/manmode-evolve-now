@@ -13,7 +13,6 @@ import {
   Menu,
   X,
   Trophy,
-  Settings,
   Calendar,
   ListTodo
 } from "lucide-react";
@@ -33,10 +32,8 @@ export const Navigation = ({ currentView, setCurrentView }: NavigationProps) => 
     { id: "habits", label: "Habits", icon: Target },
     { id: "knowledge", label: "Knowledge", icon: Brain },
     { id: "fitness", label: "Fitness", icon: Dumbbell },
-    { id: "schedule", label: "Schedule", icon: Calendar },
     { id: "productivity", label: "Focus", icon: Clock },
-    { id: "profile", label: "Profile", icon: User },
-    { id: "settings", label: "Settings", icon: Settings }
+    { id: "profile", label: "Profile", icon: User }
   ];
 
   const toggleMobileMenu = () => {

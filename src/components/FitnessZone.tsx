@@ -10,19 +10,22 @@ import {
   Trophy,
   ArrowRight,
   Play,
-  Calendar,
   TrendingUp,
-  CheckCircle2
+  CheckCircle2,
+  Calendar
 } from "lucide-react";
 
 export const FitnessZone = () => {
+  const [currentView, setCurrentView] = useState<'main' | 'schedule' | 'plan' | 'progress'>('main');
+  const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+  
   const [todayWorkout, setTodayWorkout] = useState({
     title: "Push Day - Chest & Triceps",
     exercises: [
-      { id: 1, name: "Bench Press", sets: "4x8-10", completed: false },
-      { id: 2, name: "Incline Dumbbell Press", sets: "3x10-12", completed: false },
-      { id: 3, name: "Dips", sets: "3x12-15", completed: false },
-      { id: 4, name: "Tricep Extensions", sets: "3x12-15", completed: false }
+      { id: 1, name: "Bench Press", sets: "4x8-10", completed: false, image: "💪" },
+      { id: 2, name: "Incline Dumbbell Press", sets: "3x10-12", completed: false, image: "🏋️" },
+      { id: 3, name: "Dips", sets: "3x12-15", completed: false, image: "💪" },
+      { id: 4, name: "Tricep Extensions", sets: "3x12-15", completed: false, image: "🔥" }
     ]
   });
 
@@ -32,29 +35,52 @@ export const FitnessZone = () => {
       title: "Beginner Full Body",
       duration: "45 min",
       level: "Beginner",
-      exercises: 8,
-      color: "bg-green-100 text-green-700"
+      exercises: [
+        "Push-ups", "Squats", "Pull-ups", "Planks", "Lunges", "Burpees", "Mountain Climbers", "Jumping Jacks"
+      ],
+      color: "bg-green-100 text-green-700",
+      schedule: ["Monday", "Wednesday", "Friday"]
     },
     {
       id: 2,
       title: "Push Pull Legs",
       duration: "60 min",
       level: "Intermediate", 
-      exercises: 12,
-      color: "bg-blue-100 text-blue-700"
+      exercises: [
+        "Bench Press", "Overhead Press", "Tricep Dips", "Pull-ups", "Rows", "Bicep Curls", 
+        "Squats", "Deadlifts", "Leg Press", "Calf Raises", "Lunges", "Leg Curls"
+      ],
+      color: "bg-blue-100 text-blue-700",
+      schedule: ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"]
     },
     {
       id: 3,
       title: "Advanced Split",
       duration: "75 min",
       level: "Advanced",
-      exercises: 15,
-      color: "bg-red-100 text-red-700"
+      exercises: [
+        "Heavy Squats", "Deadlifts", "Bench Press", "Military Press", "Pull-ups", "Dips",
+        "Barbell Rows", "Incline Press", "Bulgarian Squats", "Romanian Deadlifts", "Face Pulls", 
+        "Weighted Planks", "Farmer's Walks", "Battle Ropes", "Box Jumps"
+      ],
+      color: "bg-red-100 text-red-700",
+      schedule: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     }
   ];
 
+  const [weeklySchedule, setWeeklySchedule] = useState([
+    { day: 'Monday', type: 'Push (Chest, Shoulders, Triceps)', completed: true },
+    { day: 'Tuesday', type: 'Pull (Back, Biceps)', completed: false },
+    { day: 'Wednesday', type: 'Legs (Quads, Hamstrings, Glutes)', completed: false },
+    { day: 'Thursday', type: 'Push (Chest, Shoulders, Triceps)', completed: false },
+    { day: 'Friday', type: 'Pull (Back, Biceps)', completed: false },
+    { day: 'Saturday', type: 'Legs & Core', completed: false },
+    { day: 'Sunday', type: 'Rest Day', completed: false }
+  ]);
+
   const startExercise = (exerciseId: number) => {
-    alert(`Starting ${todayWorkout.exercises.find(e => e.id === exerciseId)?.name}! Let's go!`);
+    const exercise = todayWorkout.exercises.find(e => e.id === exerciseId);
+    alert(`Starting ${exercise?.name}! Timer started for ${exercise?.sets}. Let's go! 💪`);
   };
 
   const completeExercise = (exerciseId: number) => {
@@ -71,20 +97,12 @@ export const FitnessZone = () => {
       ...prev,
       exercises: prev.exercises.map(exercise => ({ ...exercise, completed: true }))
     }));
-    alert("Workout completed! Great job! 💪");
+    alert("Workout completed! Great job! 💪 +50 XP earned!");
   };
 
   const viewPlan = (planId: number) => {
-    const plan = workoutPlans.find(p => p.id === planId);
-    alert(`Viewing ${plan?.title} workout plan!`);
-  };
-
-  const openSchedule = () => {
-    alert("Opening weekly workout schedule!");
-  };
-
-  const openProgressTracking = () => {
-    alert("Opening progress tracking!");
+    setSelectedPlan(planId);
+    setCurrentView('plan');
   };
 
   const completedExercises = todayWorkout.exercises.filter(e => e.completed).length;
@@ -95,6 +113,168 @@ export const FitnessZone = () => {
     { label: "Total Workouts", value: "47", color: "text-green-600" },
     { label: "Current Streak", value: "12 days", color: "text-orange-600" }
   ];
+
+  if (currentView === 'schedule') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={() => setCurrentView('main')}>
+            ← Back
+          </Button>
+          <h1 className="text-2xl font-bold text-gray-900">Weekly Schedule</h1>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Plan Your Workout Week
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {weeklySchedule.map((day, index) => (
+                <div key={day.day} className={`p-4 rounded-lg border ${
+                  day.completed ? 'bg-green-50 border-green-200' : 
+                  day.type === 'Rest Day' ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold">{day.day}</h3>
+                      <p className="text-sm text-gray-600">{day.type}</p>
+                    </div>
+                    {day.type !== 'Rest Day' && (
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          setWeeklySchedule(prev => prev.map((d, i) => 
+                            i === index ? { ...d, completed: !d.completed } : d
+                          ));
+                        }}
+                      >
+                        {day.completed ? 'Completed' : 'Mark Done'}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (currentView === 'plan' && selectedPlan) {
+    const plan = workoutPlans.find(p => p.id === selectedPlan);
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={() => setCurrentView('main')}>
+            ← Back
+          </Button>
+          <h1 className="text-2xl font-bold text-gray-900">{plan?.title}</h1>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Badge className={plan?.color}>{plan?.level}</Badge>
+              <span>{plan?.duration}</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold mb-2">Workout Schedule:</h3>
+                <div className="flex gap-2 flex-wrap">
+                  {plan?.schedule.map(day => (
+                    <Badge key={day} variant="outline">{day}</Badge>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-semibold mb-2">Exercises ({plan?.exercises.length}):</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {plan?.exercises.map((exercise, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                      <div className="text-2xl mb-1">💪</div>
+                      <p className="text-sm font-medium">{exercise}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Button className="w-full" onClick={() => alert(`Starting ${plan?.title} workout plan! 🔥`)}>
+                Start This Plan
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (currentView === 'progress') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={() => setCurrentView('main')}>
+            ← Back
+          </Button>
+          <h1 className="text-2xl font-bold text-gray-900">Progress Tracking</h1>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Weight Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600">175 lbs</div>
+                  <p className="text-sm text-gray-600">Current Weight</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Goal: 180 lbs</span>
+                    <span>+5 lbs to go</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-500 h-2 rounded-full" style={{width: '85%'}}></div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Strength Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span>Bench Press</span>
+                  <span className="font-bold">185 lbs</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Squat</span>
+                  <span className="font-bold">225 lbs</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Deadlift</span>
+                  <span className="font-bold">275 lbs</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -144,11 +324,14 @@ export const FitnessZone = () => {
                     }`}>
                       {exercise.completed && <CheckCircle2 className="h-4 w-4 text-white" />}
                     </div>
-                    <div>
-                      <span className={`font-medium ${exercise.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                        {exercise.name}
-                      </span>
-                      <p className="text-sm text-gray-600">{exercise.sets}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">{exercise.image}</span>
+                      <div>
+                        <span className={`font-medium ${exercise.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                          {exercise.name}
+                        </span>
+                        <p className="text-sm text-gray-600">{exercise.sets}</p>
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -210,7 +393,7 @@ export const FitnessZone = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2">{plan.title}</h3>
-                    <p className="text-sm text-gray-600">{plan.exercises} exercises</p>
+                    <p className="text-sm text-gray-600">{plan.exercises.length} exercises</p>
                   </div>
                   <Button 
                     variant="outline" 
@@ -229,7 +412,7 @@ export const FitnessZone = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={openSchedule}>
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setCurrentView('schedule')}>
           <CardContent className="p-6 text-center">
             <Calendar className="h-8 w-8 text-blue-500 mx-auto mb-3" />
             <h3 className="font-semibold mb-2">Weekly Schedule</h3>
@@ -237,7 +420,7 @@ export const FitnessZone = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={openProgressTracking}>
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setCurrentView('progress')}>
           <CardContent className="p-6 text-center">
             <TrendingUp className="h-8 w-8 text-green-500 mx-auto mb-3" />
             <h3 className="font-semibold mb-2">Progress Tracking</h3>
