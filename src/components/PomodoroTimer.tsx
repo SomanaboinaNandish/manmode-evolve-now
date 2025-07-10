@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Clock, 
   Play, 
@@ -13,15 +14,27 @@ import {
   Target
 } from "lucide-react";
 
-export const PomodoroTimer = () => {
-  const [currentTime, setCurrentTime] = useState(25 * 60); // 25 minutes in seconds
+interface PomodoroTimerProps {
+  initialMode?: 'work' | 'break' | 'longBreak';
+  initialDuration?: number;
+}
+
+export const PomodoroTimer = ({ 
+  initialMode = 'work', 
+  initialDuration 
+}: PomodoroTimerProps) => {
+  const { updateUser } = useAuth();
+  const [currentTime, setCurrentTime] = useState(() => {
+    if (initialDuration) return initialDuration;
+    return 25 * 60; // default 25 minutes
+  });
   const [isRunning, setIsRunning] = useState(false);
-  const [mode, setMode] = useState<'work' | 'break' | 'longBreak'>('work');
+  const [mode, setMode] = useState<'work' | 'break' | 'longBreak'>(initialMode);
   const [sessions, setSessions] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const modes = {
-    work: { duration: 25 * 60, label: 'Focus Time', icon: Target },
+    work: { duration: initialDuration || 25 * 60, label: 'Focus Time', icon: Target },
     break: { duration: 5 * 60, label: 'Short Break', icon: Coffee },
     longBreak: { duration: 15 * 60, label: 'Long Break', icon: Coffee }
   };
@@ -54,6 +67,12 @@ export const PomodoroTimer = () => {
   const handleSessionComplete = () => {
     if (mode === 'work') {
       setSessions(prev => prev + 1);
+      // Award XP for completing session
+      updateUser(prev => ({
+        ...prev,
+        xp: prev.xp + 25
+      }));
+      
       // Auto switch to break
       const nextMode = sessions % 4 === 3 ? 'longBreak' : 'break';
       setMode(nextMode);
@@ -162,30 +181,32 @@ export const PomodoroTimer = () => {
             </Button>
           </div>
 
-          {/* Mode Switcher */}
-          <div className="flex justify-center gap-2">
-            <Button
-              variant={mode === 'work' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => switchMode('work')}
-            >
-              25m Focus
-            </Button>
-            <Button
-              variant={mode === 'break' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => switchMode('break')}
-            >
-              5m Break
-            </Button>
-            <Button
-              variant={mode === 'longBreak' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => switchMode('longBreak')}
-            >
-              15m Long Break
-            </Button>
-          </div>
+          {/* Mode Switcher - only show if not custom duration */}
+          {!initialDuration && (
+            <div className="flex justify-center gap-2">
+              <Button
+                variant={mode === 'work' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => switchMode('work')}
+              >
+                25m Focus
+              </Button>
+              <Button
+                variant={mode === 'break' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => switchMode('break')}
+              >
+                5m Break
+              </Button>
+              <Button
+                variant={mode === 'longBreak' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => switchMode('longBreak')}
+              >
+                15m Long Break
+              </Button>
+            </div>
+          )}
 
           {/* Session Counter */}
           <div className="text-center">
