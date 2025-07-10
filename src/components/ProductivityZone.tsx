@@ -4,22 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PomodoroTimer } from "@/components/PomodoroTimer";
 import { 
-  Clock, 
-  Play, 
-  Pause, 
-  RotateCcw,
   CheckCircle2,
   Plus,
   Target,
   Zap,
   Timer,
-  ListChecks
+  ListChecks,
+  Trash2
 } from "lucide-react";
 
 export const ProductivityZone = () => {
-  const [currentTime, setCurrentTime] = useState(25 * 60); // 25 minutes in seconds
-  const [isRunning, setIsRunning] = useState(false);
   const [newTask, setNewTask] = useState("");
   const [tasks, setTasks] = useState([
     { id: 1, title: "Complete morning workout", completed: true, priority: "high" },
@@ -28,11 +24,8 @@ export const ProductivityZone = () => {
     { id: 4, title: "Prepare for team meeting", completed: false, priority: "low" }
   ]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  const [deepWorkSessions, setDeepWorkSessions] = useState(0);
+  const [quickFocusSessions, setQuickFocusSessions] = useState(0);
 
   const addTask = () => {
     if (newTask.trim()) {
@@ -52,6 +45,10 @@ export const ProductivityZone = () => {
     ));
   };
 
+  const deleteTask = (id: number) => {
+    setTasks(tasks.filter(task => task.id !== id));
+  };
+
   const completedTasks = tasks.filter(task => task.completed).length;
   const totalTasks = tasks.length;
 
@@ -64,10 +61,22 @@ export const ProductivityZone = () => {
     return colors[priority as keyof typeof colors] || "bg-gray-100 text-gray-700";
   };
 
+  const startDeepWork = () => {
+    setDeepWorkSessions(prev => prev + 1);
+    // Start a 90-minute session
+    alert("Starting 90-minute Deep Work session! Stay focused!");
+  };
+
+  const startQuickFocus = () => {
+    setQuickFocusSessions(prev => prev + 1);
+    // Start a 15-minute session
+    alert("Starting 15-minute Quick Focus session! Let's go!");
+  };
+
   const stats = [
-    { label: "Focus Sessions Today", value: "3", icon: Timer, color: "text-blue-600" },
+    { label: "Focus Sessions Today", value: deepWorkSessions + quickFocusSessions, icon: Timer, color: "text-blue-600" },
     { label: "Tasks Completed", value: `${completedTasks}/${totalTasks}`, icon: CheckCircle2, color: "text-green-600" },
-    { label: "Deep Work Hours", value: "4.5h", icon: Zap, color: "text-purple-600" }
+    { label: "Deep Work Hours", value: `${(deepWorkSessions * 1.5).toFixed(1)}h`, icon: Zap, color: "text-purple-600" }
   ];
 
   return (
@@ -103,54 +112,7 @@ export const ProductivityZone = () => {
       </div>
 
       {/* Pomodoro Timer */}
-      <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-red-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-orange-700">
-            <Clock className="h-5 w-5" />
-            Pomodoro Timer
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center space-y-6">
-            <div className="text-6xl font-mono font-bold text-gray-900">
-              {formatTime(currentTime)}
-            </div>
-            <div className="flex justify-center gap-4">
-              <Button 
-                onClick={() => setIsRunning(!isRunning)}
-                className="px-8"
-              >
-                {isRunning ? (
-                  <>
-                    <Pause className="h-4 w-4 mr-2" />
-                    Pause
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-4 w-4 mr-2" />
-                    Start
-                  </>
-                )}
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  setCurrentTime(25 * 60);
-                  setIsRunning(false);
-                }}
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Reset
-              </Button>
-            </div>
-            <div className="flex justify-center gap-4 text-sm">
-              <Badge variant="outline">25 min Focus</Badge>
-              <Badge variant="outline">5 min Break</Badge>
-              <Badge variant="outline">15 min Long Break</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <PomodoroTimer />
 
       {/* Task Management */}
       <Card>
@@ -183,8 +145,8 @@ export const ProductivityZone = () => {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => toggleTask(task.id)}
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        task.completed ? 'bg-green-500 border-green-500' : 'border-gray-300'
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                        task.completed ? 'bg-green-500 border-green-500' : 'border-gray-300 hover:border-orange-500'
                       }`}
                     >
                       {task.completed && <CheckCircle2 className="h-3 w-3 text-white" />}
@@ -193,9 +155,19 @@ export const ProductivityZone = () => {
                       {task.title}
                     </span>
                   </div>
-                  <Badge variant="outline" className={getPriorityColor(task.priority)}>
-                    {task.priority}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={getPriorityColor(task.priority)}>
+                      {task.priority}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteTask(task.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -205,19 +177,21 @@ export const ProductivityZone = () => {
 
       {/* Quick Focus Options */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={startDeepWork}>
           <CardContent className="p-6 text-center">
             <Target className="h-8 w-8 text-blue-500 mx-auto mb-3" />
             <h3 className="font-semibold mb-2">Deep Work Session</h3>
-            <p className="text-sm text-gray-600">90 minutes of focused work</p>
+            <p className="text-sm text-gray-600 mb-4">90 minutes of focused work</p>
+            <Button className="w-full">Start Deep Work</Button>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={startQuickFocus}>
           <CardContent className="p-6 text-center">
             <Zap className="h-8 w-8 text-purple-500 mx-auto mb-3" />
             <h3 className="font-semibold mb-2">Quick Focus</h3>
-            <p className="text-sm text-gray-600">15 minutes power session</p>
+            <p className="text-sm text-gray-600 mb-4">15 minutes power session</p>
+            <Button className="w-full">Start Quick Focus</Button>
           </CardContent>
         </Card>
       </div>

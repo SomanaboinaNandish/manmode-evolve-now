@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,10 +11,21 @@ import {
   ArrowRight,
   Play,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  CheckCircle2
 } from "lucide-react";
 
 export const FitnessZone = () => {
+  const [todayWorkout, setTodayWorkout] = useState({
+    title: "Push Day - Chest & Triceps",
+    exercises: [
+      { id: 1, name: "Bench Press", sets: "4x8-10", completed: false },
+      { id: 2, name: "Incline Dumbbell Press", sets: "3x10-12", completed: false },
+      { id: 3, name: "Dips", sets: "3x12-15", completed: false },
+      { id: 4, name: "Tricep Extensions", sets: "3x12-15", completed: false }
+    ]
+  });
+
   const workoutPlans = [
     {
       id: 1,
@@ -27,7 +39,7 @@ export const FitnessZone = () => {
       id: 2,
       title: "Push Pull Legs",
       duration: "60 min",
-      level: "Intermediate",
+      level: "Intermediate", 
       exercises: 12,
       color: "bg-blue-100 text-blue-700"
     },
@@ -41,15 +53,42 @@ export const FitnessZone = () => {
     }
   ];
 
-  const todayWorkout = {
-    title: "Push Day - Chest & Triceps",
-    exercises: [
-      { name: "Bench Press", sets: "4x8-10", completed: false },
-      { name: "Incline Dumbbell Press", sets: "3x10-12", completed: false },
-      { name: "Dips", sets: "3x12-15", completed: false },
-      { name: "Tricep Extensions", sets: "3x12-15", completed: false }
-    ]
+  const startExercise = (exerciseId: number) => {
+    alert(`Starting ${todayWorkout.exercises.find(e => e.id === exerciseId)?.name}! Let's go!`);
   };
+
+  const completeExercise = (exerciseId: number) => {
+    setTodayWorkout(prev => ({
+      ...prev,
+      exercises: prev.exercises.map(exercise =>
+        exercise.id === exerciseId ? { ...exercise, completed: true } : exercise
+      )
+    }));
+  };
+
+  const completeWorkout = () => {
+    setTodayWorkout(prev => ({
+      ...prev,
+      exercises: prev.exercises.map(exercise => ({ ...exercise, completed: true }))
+    }));
+    alert("Workout completed! Great job! 💪");
+  };
+
+  const viewPlan = (planId: number) => {
+    const plan = workoutPlans.find(p => p.id === planId);
+    alert(`Viewing ${plan?.title} workout plan!`);
+  };
+
+  const openSchedule = () => {
+    alert("Opening weekly workout schedule!");
+  };
+
+  const openProgressTracking = () => {
+    alert("Opening progress tracking!");
+  };
+
+  const completedExercises = todayWorkout.exercises.filter(e => e.completed).length;
+  const totalExercises = todayWorkout.exercises.length;
 
   const stats = [
     { label: "Workouts This Week", value: "4/6", color: "text-blue-600" },
@@ -89,27 +128,66 @@ export const FitnessZone = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-gray-900">{todayWorkout.title}</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">{todayWorkout.title}</h3>
+              <Badge variant="outline">
+                {completedExercises}/{totalExercises} completed
+              </Badge>
+            </div>
+            
             <div className="space-y-3">
-              {todayWorkout.exercises.map((exercise, index) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-lg border bg-white">
+              {todayWorkout.exercises.map((exercise) => (
+                <div key={exercise.id} className="flex items-center justify-between p-3 rounded-lg border bg-white">
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full border-2 border-gray-300"></div>
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                      exercise.completed ? 'bg-green-500 border-green-500' : 'border-gray-300'
+                    }`}>
+                      {exercise.completed && <CheckCircle2 className="h-4 w-4 text-white" />}
+                    </div>
                     <div>
-                      <span className="font-medium text-gray-900">{exercise.name}</span>
+                      <span className={`font-medium ${exercise.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                        {exercise.name}
+                      </span>
                       <p className="text-sm text-gray-600">{exercise.sets}</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    <Play className="h-4 w-4 mr-2" />
-                    Start
-                  </Button>
+                  <div className="flex gap-2">
+                    {!exercise.completed && (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => startExercise(exercise.id)}
+                        >
+                          <Play className="h-4 w-4 mr-2" />
+                          Start
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={() => completeExercise(exercise.id)}
+                        >
+                          Done
+                        </Button>
+                      </>
+                    )}
+                    {exercise.completed && (
+                      <Badge className="bg-green-100 text-green-700">
+                        <Trophy className="h-3 w-3 mr-1" />
+                        Complete
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
-            <Button className="w-full">
+            
+            <Button 
+              className="w-full" 
+              onClick={completeWorkout}
+              disabled={completedExercises === totalExercises}
+            >
               <Trophy className="h-4 w-4 mr-2" />
-              Complete Workout
+              {completedExercises === totalExercises ? 'Workout Completed!' : 'Complete All Exercises'}
             </Button>
           </div>
         </CardContent>
@@ -134,7 +212,11 @@ export const FitnessZone = () => {
                     <h3 className="font-semibold text-gray-900 mb-2">{plan.title}</h3>
                     <p className="text-sm text-gray-600">{plan.exercises} exercises</p>
                   </div>
-                  <Button variant="outline" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => viewPlan(plan.id)}
+                  >
                     View Plan
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -147,7 +229,7 @@ export const FitnessZone = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={openSchedule}>
           <CardContent className="p-6 text-center">
             <Calendar className="h-8 w-8 text-blue-500 mx-auto mb-3" />
             <h3 className="font-semibold mb-2">Weekly Schedule</h3>
@@ -155,7 +237,7 @@ export const FitnessZone = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={openProgressTracking}>
           <CardContent className="p-6 text-center">
             <TrendingUp className="h-8 w-8 text-green-500 mx-auto mb-3" />
             <h3 className="font-semibold mb-2">Progress Tracking</h3>

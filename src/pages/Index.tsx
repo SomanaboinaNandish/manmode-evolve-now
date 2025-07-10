@@ -1,23 +1,7 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Target, 
-  Calendar, 
-  Trophy, 
-  Flame, 
-  Brain, 
-  Dumbbell, 
-  Clock, 
-  CheckCircle2,
-  ArrowRight,
-  Zap,
-  Star,
-  User
-} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { AuthForm } from "@/components/AuthForm";
 import { Navigation } from "@/components/Navigation";
 import { HabitTracker } from "@/components/HabitTracker";
 import { KnowledgeZone } from "@/components/KnowledgeZone";
@@ -25,19 +9,28 @@ import { FitnessZone } from "@/components/FitnessZone";
 import { ProductivityZone } from "@/components/ProductivityZone";
 import { UserProfile } from "@/components/UserProfile";
 import { XPDisplay } from "@/components/XPDisplay";
+import { GoalsManager } from "@/components/GoalsManager";
+import { AccountSettings } from "@/components/AccountSettings";
+import { WorkoutSchedule } from "@/components/WorkoutSchedule";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Flame, 
+  Brain, 
+  Dumbbell, 
+  Clock, 
+  ArrowRight
+} from "lucide-react";
 
 const Index = () => {
+  const { user } = useAuth();
   const [currentView, setCurrentView] = useState("dashboard");
 
-  const todaysGoals = [
-    { id: 1, title: "Morning Workout", completed: true, category: "Fitness" },
-    { id: 2, title: "Read 30 minutes", completed: false, category: "Mental" },
-    { id: 3, title: "Drink 8 glasses of water", completed: false, category: "Health" },
-    { id: 4, title: "No social media before 6 PM", completed: true, category: "Discipline" }
-  ];
-
-  const completedGoals = todaysGoals.filter(goal => goal.completed).length;
-  const progressPercentage = (completedGoals / todaysGoals.length) * 100;
+  // Show auth form if user is not logged in
+  if (!user) {
+    return <AuthForm />;
+  }
 
   const renderMainContent = () => {
     switch (currentView) {
@@ -51,6 +44,12 @@ const Index = () => {
         return <ProductivityZone />;
       case "profile":
         return <UserProfile />;
+      case "goals":
+        return <GoalsManager />;
+      case "settings":
+        return <AccountSettings />;
+      case "schedule":
+        return <WorkoutSchedule />;
       default:
         return (
           <div className="space-y-8">
@@ -62,7 +61,7 @@ const Index = () => {
                   MANMODE
                 </h1>
                 <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-                  Transform into your best self. Build discipline, strength, and character.
+                  Welcome back, {user.name}! Ready to dominate today?
                 </p>
                 <div className="flex items-center justify-center gap-4 mt-6">
                   <Flame className="h-8 w-8 text-orange-500" />
@@ -74,25 +73,20 @@ const Index = () => {
 
             {/* Daily Progress Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-white">
+              <Card 
+                className="border-orange-200 bg-gradient-to-br from-orange-50 to-white cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setCurrentView("goals")}
+              >
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-orange-700">
-                    <Target className="h-5 w-5" />
-                    Today's Progress
+                    Today's Goals
+                    <ArrowRight className="h-4 w-4" />
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Goals Completed</span>
-                      <span className="text-2xl font-bold text-orange-600">
-                        {completedGoals}/{todaysGoals.length}
-                      </span>
-                    </div>
-                    <Progress value={progressPercentage} className="h-3" />
-                    <p className="text-xs text-gray-600">
-                      {progressPercentage.toFixed(0)}% completed
-                    </p>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-orange-600 mb-2">4</div>
+                    <p className="text-sm text-gray-600">Click to manage</p>
                   </div>
                 </CardContent>
               </Card>
@@ -108,7 +102,7 @@ const Index = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">12</div>
+                    <div className="text-3xl font-bold text-blue-600 mb-2">{user.streak}</div>
                     <p className="text-sm text-gray-600">Days of consistency</p>
                     <Badge variant="secondary" className="mt-2">
                       On Fire! 🔥
@@ -117,35 +111,6 @@ const Index = () => {
                 </CardContent>
               </Card>
             </div>
-
-            {/* Today's Goals */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-gray-700" />
-                  Today's Goals
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {todaysGoals.map((goal) => (
-                    <div key={goal.id} className="flex items-center justify-between p-3 rounded-lg border bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <CheckCircle2 
-                          className={`h-5 w-5 ${goal.completed ? 'text-green-500' : 'text-gray-400'}`}
-                        />
-                        <span className={goal.completed ? 'line-through text-gray-500' : 'text-gray-900'}>
-                          {goal.title}
-                        </span>
-                      </div>
-                      <Badge variant={goal.completed ? "default" : "outline"}>
-                        {goal.category}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
