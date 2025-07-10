@@ -21,6 +21,9 @@ import {
 import { Navigation } from "@/components/Navigation";
 import { HabitTracker } from "@/components/HabitTracker";
 import { KnowledgeZone } from "@/components/KnowledgeZone";
+import { FitnessZone } from "@/components/FitnessZone";
+import { ProductivityZone } from "@/components/ProductivityZone";
+import { UserProfile } from "@/components/UserProfile";
 import { XPDisplay } from "@/components/XPDisplay";
 
 const Index = () => {
@@ -42,6 +45,12 @@ const Index = () => {
         return <HabitTracker />;
       case "knowledge":
         return <KnowledgeZone />;
+      case "fitness":
+        return <FitnessZone />;
+      case "productivity":
+        return <ProductivityZone />;
+      case "profile":
+        return <UserProfile />;
       default:
         return (
           <div className="space-y-8">
@@ -158,7 +167,7 @@ const Index = () => {
                 </CardContent>
               </Card>
 
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setCurrentView("productivity")}>
                 <CardContent className="p-6 text-center">
                   <Clock className="h-8 w-8 text-green-500 mx-auto mb-3" />
                   <h3 className="font-semibold mb-2">Productivity</h3>

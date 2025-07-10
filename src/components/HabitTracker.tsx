@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import { 
   CheckCircle2, 
   Circle, 
@@ -14,7 +15,8 @@ import {
   Sun,
   Phone,
   Target,
-  Plus
+  Plus,
+  X
 } from "lucide-react";
 
 interface Habit {
@@ -29,6 +31,8 @@ interface Habit {
 }
 
 export const HabitTracker = () => {
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newHabitName, setNewHabitName] = useState("");
   const [habits, setHabits] = useState<Habit[]>([
     {
       id: 1,
@@ -95,6 +99,24 @@ export const HabitTracker = () => {
     ));
   };
 
+  const addNewHabit = () => {
+    if (newHabitName.trim()) {
+      const newHabit: Habit = {
+        id: Date.now(),
+        name: newHabitName,
+        icon: Target,
+        streak: 0,
+        completedToday: false,
+        category: "Personal",
+        target: 1,
+        completed: 0
+      };
+      setHabits([...habits, newHabit]);
+      setNewHabitName("");
+      setShowAddForm(false);
+    }
+  };
+
   const completedHabits = habits.filter(h => h.completedToday).length;
   const completionRate = (completedHabits / habits.length) * 100;
 
@@ -103,7 +125,8 @@ export const HabitTracker = () => {
       "Fitness": "bg-red-100 text-red-700",
       "Health": "bg-blue-100 text-blue-700",
       "Mental": "bg-purple-100 text-purple-700",
-      "Discipline": "bg-orange-100 text-orange-700"
+      "Discipline": "bg-orange-100 text-orange-700",
+      "Personal": "bg-green-100 text-green-700"
     };
     return colors[category as keyof typeof colors] || "bg-gray-100 text-gray-700";
   };
@@ -206,14 +229,46 @@ export const HabitTracker = () => {
         })}
       </div>
 
-      {/* Add New Habit Button */}
-      <Button 
-        variant="outline" 
-        className="w-full py-6 border-dashed border-2 hover:border-orange-300 hover:bg-orange-50"
-      >
-        <Plus className="h-5 w-5 mr-2" />
-        Add New Habit
-      </Button>
+      {/* Add New Habit */}
+      {showAddForm ? (
+        <Card className="border-dashed border-2 border-orange-300 bg-orange-50">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-gray-900">Add New Habit</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowAddForm(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter habit name..."
+                  value={newHabitName}
+                  onChange={(e) => setNewHabitName(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && addNewHabit()}
+                  className="flex-1"
+                />
+                <Button onClick={addNewHabit}>
+                  Add Habit
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Button 
+          variant="outline" 
+          className="w-full py-6 border-dashed border-2 hover:border-orange-300 hover:bg-orange-50"
+          onClick={() => setShowAddForm(true)}
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Add New Habit
+        </Button>
+      )}
     </div>
   );
 };

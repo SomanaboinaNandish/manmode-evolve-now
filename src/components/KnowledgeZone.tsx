@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,10 +11,14 @@ import {
   Clock, 
   BookOpen,
   ArrowRight,
-  Lightbulb
+  Lightbulb,
+  ArrowLeft
 } from "lucide-react";
 
 export const KnowledgeZone = () => {
+  const [currentView, setCurrentView] = useState("main");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
   const dailyTip = {
     title: "Master Your Morning Routine",
     content: "The first hour of your day sets the tone for everything that follows. Winners wake up early, not because they have to, but because they choose to own their time. Start with a cold shower, exercise, or meditation. This isn't about comfort—it's about building the discipline that separates strong men from the weak.",
@@ -56,7 +61,7 @@ export const KnowledgeZone = () => {
     }
   ];
 
-  const recentArticles = [
+  const allArticles = [
     {
       title: "How to Handle Criticism Like a Man",
       category: "Mental Strength",
@@ -74,8 +79,105 @@ export const KnowledgeZone = () => {
       category: "Mental Strength",
       readTime: "5 min",
       excerpt: "Confidence isn't about being loud. It's about knowing who you are."
+    },
+    {
+      title: "Leading by Example",
+      category: "Social Skills",
+      readTime: "6 min",
+      excerpt: "True leadership is about inspiring others through your actions."
+    },
+    {
+      title: "Managing Anger Effectively",
+      category: "Emotional Intelligence",
+      readTime: "4 min",
+      excerpt: "Channel your anger into productive energy instead of destructive force."
+    },
+    {
+      title: "Setting SMART Goals",
+      category: "Goal Setting",
+      readTime: "7 min",
+      excerpt: "Learn the framework that turns dreams into achievable milestones."
+    },
+    {
+      title: "The Art of Active Listening",
+      category: "Social Skills",
+      readTime: "5 min",
+      excerpt: "Master this skill to build deeper connections and understand others."
+    },
+    {
+      title: "Overcoming Fear of Failure",
+      category: "Mental Strength",
+      readTime: "6 min",
+      excerpt: "Failure is not the opposite of success—it's a stepping stone to it."
     }
   ];
+
+  const getFilteredArticles = () => {
+    if (selectedCategory) {
+      return allArticles.filter(article => article.category === selectedCategory);
+    }
+    return allArticles;
+  };
+
+  const handleCategoryClick = (category: any) => {
+    setSelectedCategory(category.title);
+    setCurrentView("articles");
+  };
+
+  const handleBrowseAllClick = () => {
+    setSelectedCategory(null);
+    setCurrentView("articles");
+  };
+
+  if (currentView === "articles") {
+    return (
+      <div className="space-y-6">
+        {/* Header with Back Button */}
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setCurrentView("main")}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {selectedCategory || "All Articles"}
+            </h1>
+            <p className="text-gray-600">
+              {selectedCategory ? `Articles in ${selectedCategory}` : "Browse all knowledge articles"}
+            </p>
+          </div>
+        </div>
+
+        {/* Articles List */}
+        <div className="space-y-4">
+          {getFilteredArticles().map((article, index) => (
+            <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-3">
+                      <h3 className="font-semibold text-gray-900">{article.title}</h3>
+                      <Badge variant="outline">{article.category}</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">{article.excerpt}</p>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Clock className="h-3 w-3" />
+                      {article.readTime}
+                    </div>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-gray-400 ml-4" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -121,7 +223,11 @@ export const KnowledgeZone = () => {
           {knowledgeCategories.map((category) => {
             const Icon = category.icon;
             return (
-              <Card key={category.id} className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card 
+                key={category.id} 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => handleCategoryClick(category)}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -147,7 +253,7 @@ export const KnowledgeZone = () => {
       <div>
         <h2 className="text-xl font-semibold mb-4 text-gray-900">Recent Articles</h2>
         <div className="space-y-4">
-          {recentArticles.map((article, index) => (
+          {allArticles.slice(0, 3).map((article, index) => (
             <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -177,7 +283,11 @@ export const KnowledgeZone = () => {
           <p className="text-gray-300 mb-6">
             Knowledge without action is worthless. Start applying what you learn today.
           </p>
-          <Button variant="secondary" size="lg">
+          <Button 
+            variant="secondary" 
+            size="lg"
+            onClick={handleBrowseAllClick}
+          >
             Browse All Articles
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
