@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 export const FitnessZone = () => {
-  const { updateUser } = useAuth();
+  const { user, updateUser } = useAuth();
   const [currentView, setCurrentView] = useState<'main' | 'schedule' | 'plan' | 'progress'>('main');
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
   const [activePlan, setActivePlan] = useState<number | null>(null);
@@ -129,10 +129,12 @@ export const FitnessZone = () => {
     }));
     
     // Award XP and update progress
-    updateUser(prev => ({
-      ...prev,
-      xp: prev.xp + 50
-    }));
+    if (user) {
+      updateUser({
+        xp: user.xp + 50,
+        workoutsCompleted: user.workoutsCompleted + 1
+      });
+    }
     
     setProgressData(prev => ({
       ...prev,

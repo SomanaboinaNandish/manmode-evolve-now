@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +31,7 @@ export const ProductivityZone = () => {
   });
 
   const stats = [
-    { label: "Focus Sessions Today", value: user?.focusSessionsToday || "0", color: "text-blue-600", icon: Target },
+    { label: "Focus Sessions Today", value: user?.focusSessionsToday?.toString() || "0", color: "text-blue-600", icon: Target },
     { label: "Total Focus Time", value: `${Math.floor((user?.totalFocusTime || 0) / 60)}h ${(user?.totalFocusTime || 0) % 60}m`, color: "text-green-600", icon: Clock },
     { label: "Current Streak", value: `${user?.streak || 0} days`, color: "text-orange-600", icon: Flame }
   ];
@@ -54,11 +53,12 @@ export const ProductivityZone = () => {
 
   const completeReadingSession = () => {
     const timeSpent = readingSession.timeSpent + 30;
-    updateUser(prev => ({
-      ...prev,
-      totalReadingTime: (prev.totalReadingTime || 0) + 30,
-      xp: prev.xp + 20
-    }));
+    if (user) {
+      updateUser({
+        totalReadingTime: user.totalReadingTime + 30,
+        xp: user.xp + 20
+      });
+    }
     setReadingSession(prev => ({ ...prev, isActive: false, timeSpent: 0 }));
     setFocusMode('none');
   };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,7 @@ export const PomodoroTimer = ({
   initialMode = 'work', 
   initialDuration 
 }: PomodoroTimerProps) => {
-  const { updateUser } = useAuth();
+  const { user, updateUser } = useAuth();
   const [currentTime, setCurrentTime] = useState(() => {
     if (initialDuration) return initialDuration;
     return 25 * 60; // default 25 minutes
@@ -68,10 +67,14 @@ export const PomodoroTimer = ({
     if (mode === 'work') {
       setSessions(prev => prev + 1);
       // Award XP for completing session
-      updateUser(prev => ({
-        ...prev,
-        xp: prev.xp + 25
-      }));
+      if (user) {
+        updateUser({
+          xp: user.xp + 25,
+          focusSessionsTotal: user.focusSessionsTotal + 1,
+          focusSessionsToday: user.focusSessionsToday + 1,
+          totalFocusTime: user.totalFocusTime + (modes.work.duration / 60)
+        });
+      }
       
       // Auto switch to break
       const nextMode = sessions % 4 === 3 ? 'longBreak' : 'break';

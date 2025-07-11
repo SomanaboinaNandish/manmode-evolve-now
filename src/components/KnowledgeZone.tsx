@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -51,7 +50,7 @@ export const KnowledgeZone = () => {
       description: "Build resilience and emotional control",
       icon: Brain,
       color: "bg-purple-100 text-purple-700",
-      articles: user?.mentalArticlesRead || 12,
+      articles: user?.mentalArticlesRead || 0,
       progress: Math.min((user?.mentalArticlesRead || 0) * 8.33, 100)
     },
     {
@@ -60,7 +59,7 @@ export const KnowledgeZone = () => {
       description: "Leadership and communication mastery",
       icon: Users,
       color: "bg-blue-100 text-blue-700",
-      articles: user?.socialArticlesRead || 8,
+      articles: user?.socialArticlesRead || 0,
       progress: Math.min((user?.socialArticlesRead || 0) * 12.5, 100)
     },
     {
@@ -69,7 +68,7 @@ export const KnowledgeZone = () => {
       description: "Understand and control your emotions",
       icon: Heart,
       color: "bg-red-100 text-red-700",
-      articles: user?.emotionalArticlesRead || 15,
+      articles: user?.emotionalArticlesRead || 0,
       progress: Math.min((user?.emotionalArticlesRead || 0) * 6.67, 100)
     },
     {
@@ -78,7 +77,7 @@ export const KnowledgeZone = () => {
       description: "Strategic planning and execution",
       icon: Target,
       color: "bg-green-100 text-green-700",
-      articles: user?.goalArticlesRead || 10,
+      articles: user?.goalArticlesRead || 0,
       progress: Math.min((user?.goalArticlesRead || 0) * 10, 100)
     }
   ];
@@ -156,7 +155,9 @@ export const KnowledgeZone = () => {
       };
       setUserQuotes([...userQuotes, quote]);
       setNewQuote({ text: "", author: "", category: "Motivation" });
-      updateUser(prev => ({ ...prev, xp: prev.xp + 10 }));
+      if (user) {
+        updateUser({ xp: user.xp + 10 });
+      }
     }
   };
 
@@ -174,14 +175,17 @@ export const KnowledgeZone = () => {
   };
 
   const readArticle = (articleTitle: string, category: string) => {
+    if (!user) return;
+    
     // Simulate reading an article and update user progress
-    const categoryKey = category.toLowerCase().replace(' ', '') + 'ArticlesRead';
-    updateUser(prev => ({
-      ...prev,
-      [categoryKey]: (prev[categoryKey] || 0) + 1,
-      xp: prev.xp + 15,
-      totalReadingTime: (prev.totalReadingTime || 0) + Math.floor(Math.random() * 10) + 3
-    }));
+    const categoryKey = category.toLowerCase().replace(' ', '') + 'ArticlesRead' as keyof User;
+    const currentCount = (user[categoryKey] as number) || 0;
+    
+    updateUser({
+      [categoryKey]: currentCount + 1,
+      xp: user.xp + 15,
+      totalReadingTime: user.totalReadingTime + Math.floor(Math.random() * 10) + 3
+    });
   };
 
   if (currentView === "quotes") {

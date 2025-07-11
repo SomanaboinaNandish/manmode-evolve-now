@@ -9,6 +9,19 @@ interface User {
   xp: number;
   streak: number;
   joinDate: string;
+  nextLevelXP: number;
+  workoutsCompleted: number;
+  totalReadingTime: number;
+  focusSessionsTotal: number;
+  focusSessionsToday: number;
+  totalFocusTime: number;
+  goalsCompleted: number;
+  weeklyProgress: number[];
+  weeklyXP: number[];
+  mentalArticlesRead: number;
+  socialArticlesRead: number;
+  emotionalArticlesRead: number;
+  goalArticlesRead: number;
 }
 
 interface AuthContextType {
@@ -51,7 +64,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       level: 12,
       xp: 2850,
       streak: 15,
-      joinDate: 'Jan 2024'
+      joinDate: 'Jan 2024',
+      nextLevelXP: 3000,
+      workoutsCompleted: 47,
+      totalReadingTime: 720,
+      focusSessionsTotal: 89,
+      focusSessionsToday: 3,
+      totalFocusTime: 2640,
+      goalsCompleted: 234,
+      weeklyProgress: [85, 92, 78, 88, 95, 82, 90],
+      weeklyXP: [120, 140, 98, 135, 152, 108, 145],
+      mentalArticlesRead: 12,
+      socialArticlesRead: 8,
+      emotionalArticlesRead: 15,
+      goalArticlesRead: 10
     };
     
     setUser(userData);
@@ -69,7 +95,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       level: 1,
       xp: 0,
       streak: 0,
-      joinDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+      joinDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      nextLevelXP: 100,
+      workoutsCompleted: 0,
+      totalReadingTime: 0,
+      focusSessionsTotal: 0,
+      focusSessionsToday: 0,
+      totalFocusTime: 0,
+      goalsCompleted: 0,
+      weeklyProgress: [0, 0, 0, 0, 0, 0, 0],
+      weeklyXP: [0, 0, 0, 0, 0, 0, 0],
+      mentalArticlesRead: 0,
+      socialArticlesRead: 0,
+      emotionalArticlesRead: 0,
+      goalArticlesRead: 0
     };
     
     setUser(userData);
