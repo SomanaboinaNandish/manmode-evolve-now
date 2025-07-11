@@ -22,6 +22,7 @@ interface User {
   socialArticlesRead: number;
   emotionalArticlesRead: number;
   goalArticlesRead: number;
+  lastActiveDate: string; // New field to track streak
 }
 
 interface AuthContextType {
@@ -30,6 +31,8 @@ interface AuthContextType {
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
+  addXP: (amount: number) => void;
+  updateStreak: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,9 +52,82 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check for existing user in localStorage
     const savedUser = localStorage.getItem('manmode_user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      const userData = JSON.parse(savedUser);
+      // Check if user should lose streak (if last active was not today or yesterday)
+      const today = new Date().toDateString();
+      const lastActive = userData.lastActiveDate ? new Date(userData.lastActiveDate).toDateString() : today;
+      const daysDiff = Math.floor((new Date(today).getTime() - new Date(lastActive).getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysDiff > 1) {
+        userData.streak = 0; // Reset streak if more than 1 day passed
+      }
+      
+      setUser(userData);
     }
   }, []);
+
+  const calculateLevel = (xp: number) => {
+    return Math.floor(xp / 200) + 1; // Level up every 200 XP
+  };
+
+  const calculateNextLevelXP = (level: number) => {
+    return level * 200; // Next level requires 200 XP more
+  };
+
+  const addXP = (amount: number) => {
+    if (user) {
+      const newXP = user.xp + amount;
+      const newLevel = calculateLevel(newXP);
+      const nextLevelXP = calculateNextLevelXP(newLevel);
+      
+      const updatedUser = {
+        ...user,
+        xp: newXP,
+        level: newLevel,
+        nextLevelXP: nextLevelXP,
+        lastActiveDate: new Date().toISOString()
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('manmode_user', JSON.stringify(updatedUser));
+    }
+  };
+
+  const updateStreak = () => {
+    if (user) {
+      const today = new Date().toDateString();
+      const lastActive = user.lastActiveDate ? new Date(user.lastActiveDate).toDateString() : null;
+      
+      // If last active was yesterday, increment streak
+      // If last active was today, don't change streak
+      // If last active was more than 1 day ago, reset to 1
+      
+      let newStreak = user.streak;
+      
+      if (!lastActive) {
+        newStreak = 1; // First day
+      } else {
+        const daysDiff = Math.floor((new Date(today).getTime() - new Date(lastActive).getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff === 1) {
+          newStreak = user.streak + 1; // Increment streak
+        } else if (daysDiff === 0) {
+          newStreak = Math.max(user.streak, 1); // Same day, ensure at least 1
+        } else {
+          newStreak = 1; // Reset streak but start with 1 for today
+        }
+      }
+      
+      const updatedUser = {
+        ...user,
+        streak: newStreak,
+        lastActiveDate: new Date().toISOString()
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('manmode_user', JSON.stringify(updatedUser));
+    }
+  };
 
   const login = async (email: string, password: string) => {
     // Simulate API call
@@ -77,7 +153,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       mentalArticlesRead: 12,
       socialArticlesRead: 8,
       emotionalArticlesRead: 15,
-      goalArticlesRead: 10
+      goalArticlesRead: 10,
+      lastActiveDate: new Date().toISOString()
     };
     
     setUser(userData);
@@ -96,7 +173,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       xp: 0,
       streak: 0,
       joinDate: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-      nextLevelXP: 100,
+      nextLevelXP: 200,
       workoutsCompleted: 0,
       totalReadingTime: 0,
       focusSessionsTotal: 0,
@@ -108,7 +185,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       mentalArticlesRead: 0,
       socialArticlesRead: 0,
       emotionalArticlesRead: 0,
-      goalArticlesRead: 0
+      goalArticlesRead: 0,
+      lastActiveDate: new Date().toISOString()
     };
     
     setUser(userData);
@@ -122,14 +200,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateUser = (updates: Partial<User>) => {
     if (user) {
-      const updatedUser = { ...user, ...updates };
+      const updatedUser = { ...user, ...updates, lastActiveDate: new Date().toISOString() };
       setUser(updatedUser);
       localStorage.setItem('manmode_user', JSON.stringify(updatedUser));
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, updateUser, addXP, updateStreak }}>
       {children}
     </AuthContext.Provider>
   );

@@ -22,7 +22,7 @@ interface Goal {
 }
 
 export const GoalsManager = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, addXP, updateStreak } = useAuth();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [newGoal, setNewGoal] = useState({ title: '', category: 'Fitness' });
   const categories = ['Fitness', 'Mental', 'Health', 'Discipline', 'Work', 'Social'];
@@ -35,10 +35,10 @@ export const GoalsManager = () => {
     } else {
       // Set initial goals if none exist
       const initialGoals = [
-        { id: '1', title: 'Morning Workout', category: 'Fitness', completed: true, date: new Date().toISOString().split('T')[0] },
+        { id: '1', title: 'Morning Workout', category: 'Fitness', completed: false, date: new Date().toISOString().split('T')[0] },
         { id: '2', title: 'Read 30 minutes', category: 'Mental', completed: false, date: new Date().toISOString().split('T')[0] },
         { id: '3', title: 'Drink 8 glasses of water', category: 'Health', completed: false, date: new Date().toISOString().split('T')[0] },
-        { id: '4', title: 'No social media before 6 PM', category: 'Discipline', completed: true, date: new Date().toISOString().split('T')[0] }
+        { id: '4', title: 'No social media before 6 PM', category: 'Discipline', completed: false, date: new Date().toISOString().split('T')[0] }
       ];
       setGoals(initialGoals);
       localStorage.setItem('manmode_goals', JSON.stringify(initialGoals));
@@ -73,14 +73,15 @@ export const GoalsManager = () => {
         
         // Update user XP and goal count when completing a goal
         if (newCompleted && user) {
+          addXP(25); // Award 25 XP for completing a goal
+          updateStreak(); // Update streak when completing a goal
           updateUser({
-            xp: user.xp + 25, // Award 25 XP for completing a goal
             goalsCompleted: (user.goalsCompleted || 0) + 1
           });
         } else if (!newCompleted && user) {
           // Remove XP and goal count when unchecking
+          addXP(-25); // Remove 25 XP
           updateUser({
-            xp: Math.max(0, user.xp - 25),
             goalsCompleted: Math.max(0, (user.goalsCompleted || 0) - 1)
           });
         }
@@ -98,8 +99,8 @@ export const GoalsManager = () => {
     
     // If deleting a completed goal, remove XP and goal count
     if (goalToDelete?.completed && user) {
+      addXP(-25);
       updateUser({
-        xp: Math.max(0, user.xp - 25),
         goalsCompleted: Math.max(0, (user.goalsCompleted || 0) - 1)
       });
     }

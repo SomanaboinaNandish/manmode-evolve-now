@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   CheckCircle2, 
   Circle, 
@@ -31,6 +31,7 @@ interface Habit {
 }
 
 export const HabitTracker = () => {
+  const { addXP, updateStreak } = useAuth();
   const [showAddForm, setShowAddForm] = useState(false);
   const [newHabitName, setNewHabitName] = useState("");
   const [habits, setHabits] = useState<Habit[]>([
@@ -39,10 +40,10 @@ export const HabitTracker = () => {
       name: "Early Morning Workout",
       icon: Dumbbell,
       streak: 12,
-      completedToday: true,
+      completedToday: false,
       category: "Fitness",
       target: 1,
-      completed: 1
+      completed: 0
     },
     {
       id: 2,
@@ -69,10 +70,10 @@ export const HabitTracker = () => {
       name: "Wake Up at 6 AM",
       icon: Sun,
       streak: 15,
-      completedToday: true,
+      completedToday: false,
       category: "Discipline",
       target: 1,
-      completed: 1
+      completed: 0
     },
     {
       id: 5,
@@ -87,16 +88,26 @@ export const HabitTracker = () => {
   ]);
 
   const toggleHabit = (habitId: number) => {
-    setHabits(habits.map(habit => 
-      habit.id === habitId 
-        ? { 
-            ...habit, 
-            completedToday: !habit.completedToday,
-            streak: !habit.completedToday ? habit.streak + 1 : Math.max(0, habit.streak - 1),
-            completed: !habit.completedToday ? habit.target : 0
-          }
-        : habit
-    ));
+    setHabits(habits.map(habit => {
+      if (habit.id === habitId) {
+        const newCompleted = !habit.completedToday;
+        
+        if (newCompleted) {
+          addXP(15); // Award 15 XP for completing a habit
+          updateStreak(); // Update streak when completing a habit
+        } else {
+          addXP(-15); // Remove XP when unchecking
+        }
+        
+        return { 
+          ...habit, 
+          completedToday: newCompleted,
+          streak: newCompleted ? habit.streak + 1 : Math.max(0, habit.streak - 1),
+          completed: newCompleted ? habit.target : 0
+        };
+      }
+      return habit;
+    }));
   };
 
   const addNewHabit = () => {
@@ -162,6 +173,9 @@ export const HabitTracker = () => {
                 {completedHabits === habits.length ? "Perfect Day! 🔥" : "Keep going!"}
               </span>
             </div>
+            <div className="text-center text-sm text-gray-600">
+              +{completedHabits * 15} XP earned from habits today
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -195,6 +209,11 @@ export const HabitTracker = () => {
                         <Badge variant="outline" className={getCategoryColor(habit.category)}>
                           {habit.category}
                         </Badge>
+                        {habit.completedToday && (
+                          <Badge className="bg-green-100 text-green-700">
+                            +15 XP
+                          </Badge>
+                        )}
                       </div>
                       
                       {habit.target > 1 && (
