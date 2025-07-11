@@ -3,15 +3,32 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Star, Zap, Trophy } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const XPDisplay = () => {
-  const currentXP = 1240;
-  const nextLevelXP = 1500;
-  const currentLevel = 8;
-  const levelTitle = "Disciplined Warrior";
+  const { user } = useAuth();
   
+  if (!user) return null;
+
+  const currentXP = user.xp;
+  const nextLevelXP = user.nextLevelXP;
+  const currentLevel = user.level;
+  
+  // Dynamic level title based on actual level
+  const getLevelTitle = (level: number) => {
+    if (level >= 20) return "Legendary Master";
+    if (level >= 15) return "Elite Champion";
+    if (level >= 10) return "Disciplined Warrior";
+    if (level >= 5) return "Rising Fighter";
+    return "Beginner Warrior";
+  };
+  
+  const levelTitle = getLevelTitle(currentLevel);
   const xpProgress = (currentXP / nextLevelXP) * 100;
   const xpNeeded = nextLevelXP - currentXP;
+
+  // Calculate today's XP gain (this would be more sophisticated in a real app)
+  const todayXP = 150; // This could be calculated from today's activities
 
   const getLevelBadgeColor = (level: number) => {
     if (level >= 15) return "bg-yellow-100 text-yellow-700 border-yellow-300";
@@ -58,7 +75,7 @@ export const XPDisplay = () => {
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-orange-500">
               <Zap className="h-4 w-4" />
-              <span className="text-sm font-medium">+150 XP today</span>
+              <span className="text-sm font-medium">+{todayXP} XP today</span>
             </div>
           </div>
         </div>

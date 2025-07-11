@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,15 +22,35 @@ interface Goal {
 }
 
 export const GoalsManager = () => {
-  const [goals, setGoals] = useState<Goal[]>([
-    { id: '1', title: 'Morning Workout', category: 'Fitness', completed: true, date: new Date().toISOString().split('T')[0] },
-    { id: '2', title: 'Read 30 minutes', category: 'Mental', completed: false, date: new Date().toISOString().split('T')[0] },
-    { id: '3', title: 'Drink 8 glasses of water', category: 'Health', completed: false, date: new Date().toISOString().split('T')[0] },
-    { id: '4', title: 'No social media before 6 PM', category: 'Discipline', completed: true, date: new Date().toISOString().split('T')[0] }
-  ]);
-
+  const { user, updateUser } = useAuth();
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [newGoal, setNewGoal] = useState({ title: '', category: 'Fitness' });
   const categories = ['Fitness', 'Mental', 'Health', 'Discipline', 'Work', 'Social'];
+
+  // Load goals from localStorage on component mount
+  useEffect(() => {
+    const savedGoals = localStorage.getItem('manmode_goals');
+    if (savedGoals) {
+      setGoals(JSON.parse(savedGoals));
+    } else {
+      // Set initial goals if none exist
+      const initialGoals = [
+        { id: '1', title: 'Morning Workout', category: 'Fitness', completed: true, date: new Date().toISOString().split('T')[0] },
+        { id: '2', title: 'Read 30 minutes', category: 'Mental', completed: false, date: new Date().toISOString().split('T')[0] },
+        { id: '3', title: 'Drink 8 glasses of water', category: 'Health', completed: false, date: new Date().toISOString().split('T')[0] },
+        { id: '4', title: 'No social media before 6 PM', category: 'Discipline', completed: true, date: new Date().toISOString().split('T')[0] }
+      ];
+      setGoals(initialGoals);
+      localStorage.setItem('manmode_goals', JSON.stringify(initialGoals));
+    }
+  }, []);
+
+  // Save goals to localStorage whenever goals change
+  useEffect(() => {
+    if (goals.length > 0) {
+      localStorage.setItem('manmode_goals', JSON.stringify(goals));
+    }
+  }, [goals]);
 
   const addGoal = () => {
     if (newGoal.title.trim()) {
@@ -46,12 +67,43 @@ export const GoalsManager = () => {
   };
 
   const toggleGoal = (id: string) => {
-    setGoals(goals.map(goal => 
-      goal.id === id ? { ...goal, completed: !goal.completed } : goal
-    ));
+    const updatedGoals = goals.map(goal => {
+      if (goal.id === id) {
+        const newCompleted = !goal.completed;
+        
+        // Update user XP and goal count when completing a goal
+        if (newCompleted && user) {
+          updateUser({
+            xp: user.xp + 25, // Award 25 XP for completing a goal
+            goalsCompleted: (user.goalsCompleted || 0) + 1
+          });
+        } else if (!newCompleted && user) {
+          // Remove XP and goal count when unchecking
+          updateUser({
+            xp: Math.max(0, user.xp - 25),
+            goalsCompleted: Math.max(0, (user.goalsCompleted || 0) - 1)
+          });
+        }
+        
+        return { ...goal, completed: newCompleted };
+      }
+      return goal;
+    });
+    
+    setGoals(updatedGoals);
   };
 
   const deleteGoal = (id: string) => {
+    const goalToDelete = goals.find(goal => goal.id === id);
+    
+    // If deleting a completed goal, remove XP and goal count
+    if (goalToDelete?.completed && user) {
+      updateUser({
+        xp: Math.max(0, user.xp - 25),
+        goalsCompleted: Math.max(0, (user.goalsCompleted || 0) - 1)
+      });
+    }
+    
     setGoals(goals.filter(goal => goal.id !== id));
   };
 
@@ -84,7 +136,7 @@ export const GoalsManager = () => {
               />
             </div>
             <p className="text-xs text-gray-600">
-              {progressPercentage.toFixed(0)}% completed
+              {progressPercentage.toFixed(0)}% completed • +{completedGoals * 25} XP earned today
             </p>
           </div>
         </CardContent>
@@ -154,6 +206,11 @@ export const GoalsManager = () => {
                   <Badge variant={goal.completed ? "default" : "outline"}>
                     {goal.category}
                   </Badge>
+                  {goal.completed && (
+                    <Badge className="bg-green-100 text-green-700">
+                      +25 XP
+                    </Badge>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthForm } from "@/components/AuthForm";
 import { Navigation } from "@/components/Navigation";
@@ -24,6 +24,22 @@ import {
 const Index = () => {
   const { user } = useAuth();
   const [currentView, setCurrentView] = useState("dashboard");
+  const [todayGoalsCount, setTodayGoalsCount] = useState(0);
+  const [completedGoalsCount, setCompletedGoalsCount] = useState(0);
+
+  // Calculate today's goals dynamically
+  useEffect(() => {
+    const savedGoals = localStorage.getItem('manmode_goals');
+    if (savedGoals) {
+      const goals = JSON.parse(savedGoals);
+      const today = new Date().toISOString().split('T')[0];
+      const todayGoals = goals.filter((goal: any) => goal.date === today);
+      const completedToday = todayGoals.filter((goal: any) => goal.completed);
+      
+      setTodayGoalsCount(todayGoals.length);
+      setCompletedGoalsCount(completedToday.length);
+    }
+  }, [currentView]); // Refresh when view changes
 
   // Show auth form if user is not logged in
   if (!user) {
@@ -79,8 +95,24 @@ const Index = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-orange-600 mb-2">4</div>
-                    <p className="text-sm text-gray-600">Click to manage</p>
+                    <div className="text-3xl font-bold text-orange-600 mb-2">
+                      {completedGoalsCount}/{todayGoalsCount}
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {todayGoalsCount === 0 ? 'No goals set' : 'Click to manage'}
+                    </p>
+                    {todayGoalsCount > 0 && (
+                      <div className="mt-2">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                            style={{ 
+                              width: `${todayGoalsCount > 0 ? (completedGoalsCount / todayGoalsCount) * 100 : 0}%` 
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -99,7 +131,7 @@ const Index = () => {
                     <div className="text-3xl font-bold text-blue-600 mb-2">{user.streak}</div>
                     <p className="text-sm text-gray-600">Days of consistency</p>
                     <Badge variant="secondary" className="mt-2">
-                      On Fire! 🔥
+                      {user.streak > 0 ? 'On Fire! 🔥' : 'Start your streak!'}
                     </Badge>
                   </div>
                 </CardContent>
@@ -130,8 +162,36 @@ const Index = () => {
                 <CardContent className="p-6 text-center">
                   <Clock className="h-8 w-8 text-green-500 mx-auto mb-3" />
                   <h3 className="font-semibold mb-2">Productivity</h3>
-                  <p className="text-sm text-gray-600">Focus and achieve</p>
+                  <p className="text-sm text-gray-600">Focus and achieve</p>  
                   <ArrowRight className="h-4 w-4 mx-auto mt-3 text-gray-400" />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Dynamic Stats Section */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-red-600">{user.workoutsCompleted || 0}</div>
+                  <p className="text-sm text-gray-600">Workouts Done</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-600">{Math.floor((user.totalReadingTime || 0) / 60)}h</div>
+                  <p className="text-sm text-gray-600">Reading Time</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">{user.focusSessionsTotal || 0}</div>
+                  <p className="text-sm text-gray-600">Focus Sessions</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-purple-600">{user.goalsCompleted || 0}</div>
+                  <p className="text-sm text-gray-600">Total Goals</p>
                 </CardContent>
               </Card>
             </div>
