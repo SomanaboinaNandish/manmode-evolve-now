@@ -23,6 +23,29 @@ import {
   Save
 } from "lucide-react";
 
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  level: number;
+  xp: number;
+  streak: number;
+  joinDate: string;
+  nextLevelXP: number;
+  workoutsCompleted: number;
+  totalReadingTime: number;
+  focusSessionsTotal: number;
+  focusSessionsToday: number;
+  totalFocusTime: number;
+  goalsCompleted: number;
+  weeklyProgress: number[];
+  weeklyXP: number[];
+  mentalArticlesRead: number;
+  socialArticlesRead: number;
+  emotionalArticlesRead: number;
+  goalArticlesRead: number;
+};
+
 export const KnowledgeZone = () => {
   const { user, updateUser } = useAuth();
   const [currentView, setCurrentView] = useState("main");
